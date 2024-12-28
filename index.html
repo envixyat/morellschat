@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>morellschat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #36393f;
+        }
+
+        .login-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .login-box {
+            background-color: #2f3136;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .login-box input,
+        .login-box select,
+        .login-box button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            width: 80%;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .login-box input {
+            background-color: #40444b;
+            color: white;
+        }
+
+        .login-box select {
+            background-color: gray;
+            color: white;
+            cursor: pointer;
+        }
+
+        .login-box select:hover {
+            background-color: #5a5a5a;
+        }
+
+        .login-box button {
+            background-color: gray;
+            color: white;
+            cursor: pointer;
+        }
+
+        .login-box button:hover {
+            background-color: #5a5a5a;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #2f3136;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .channel-list {
+            margin-bottom: 20px;
+        }
+
+        .channel {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #444750;
+            cursor: pointer;
+        }
+
+        .channel:hover {
+            background-color: #5865f2;
+        }
+
+        .new-channel {
+            width: 100%;
+            padding: 10px;
+            background-color: gray;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .new-channel:hover {
+            background-color: #5a5a5a;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: #36393f;
+            color: white;
+        }
+
+        .messages {
+            flex-grow: 1;
+            overflow-y: scroll;
+        }
+
+        .message {
+            background-color: #2f3136;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #40444b;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            resize: none;
+        }
+
+        .send-btn {
+            padding: 10px;
+            background-color: gray;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .send-btn:hover {
+            background-color: #5a5a5a;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h2>Logg Inn til morellschat</h2>
+            <input type="text" id="username" placeholder="Skriv inn brukernavn">
+            <select id="class">
+                <option value="" disabled selected>Velg Klasse</option>
+                <option value="9A">9A</option>
+                <option value="9B">9B</option>
+                <option value="9C">9C</option>
+                <option value="9D">9D</option>
+                <option value="9E">9E</option>
+            </select>
+            <button id="enter-chat">Bli med i Chatten</button>
+        </div>
+    </div>
+    <div class="sidebar hidden">
+        <h2>Kanaler</h2>
+        <div class="channel-list">
+            <div class="channel" data-channel="9A">9A</div>
+            <div class="channel" data-channel="9B">9B</div>
+            <div class="channel" data-channel="9C">9C</div>
+            <div class="channel" data-channel="9D">9D</div>
+            <div class="channel" data-channel="9E">9E</div>
+        </div>
+        <button class="new-channel">Opprett Kanal</button>
+    </div>
+    
+    <div class="chat-container hidden">
+        <div class="messages"></div>
+        <textarea class="chat-input" placeholder="Skriv en melding..."></textarea>
+        <button class="send-btn">Send</button>
+    </div>
+
+    <script>
+        const censoredWords = ["selger", "nudes", "fuck", "neger", "slut", "cum", "cummed", "telegram", "snapchat", "discord", "horny"];
+        const channels = { 
+            "9A": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
+            "9B": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
+            "9C": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
+            "9D": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
+            "9E": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"]
+        };
+        let currentChannel = "9A";
+        let username = "";
+        let userClass = "";
+
+        document.getElementById("enter-chat").addEventListener("click", () => {
+            username = document.getElementById("username").value.trim();
+            userClass = document.getElementById("class").value;
+            if (username && userClass) {
+                document.querySelector(".login-container").classList.add("hidden");
+                document.querySelector(".sidebar").classList.remove("hidden");
+                document.querySelector(".chat-container").classList.remove("hidden");
+                loadMessages();
+            } else {
+                alert("Vennligst skriv inn både brukernavn og klasse.");
+            }
+        });
+
+        document.querySelectorAll(".channel").forEach(channel => {
+            channel.addEventListener("click", () => {
+                currentChannel = channel.getAttribute("data-channel");
+                loadMessages();
+            });
+        });
+
+        document.querySelector(".send-btn").addEventListener("click", () => {
+            const input = document.querySelector(".chat-input");
+            let message = input.value;
+            if (message.trim() !== "") {
+                message = censorMessage(message);
+                channels[currentChannel].push(`${username} (${userClass}): ${message}`);
+                input.value = "";
+                loadMessages();
+            }
+        });
+
+        document.querySelector(".new-channel").addEventListener("click", () => {
+            const newChannelName = prompt("Skriv inn navnet på den nye kanalen:");
+            if (newChannelName) {
+                const censoredChannelName = censorMessage(newChannelName);
+                channels[censoredChannelName] = ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"];
+                const newChannelElement = document.createElement("div");
+                newChannelElement.classList.add("channel");
+                newChannelElement.setAttribute("data-channel", censoredChannelName);
+                newChannelElement.textContent = censoredChannelName;
+                newChannelElement.addEventListener("click", () => {
+                    currentChannel = censoredChannelName;
+                    loadMessages();
+                });
+                document.querySelector(".channel-list").appendChild(newChannelElement);
+            }
+        });
+
+        function loadMessages() {
+            const messagesContainer = document.querySelector(".messages");
+            messagesContainer.innerHTML = "";
+            channels[currentChannel].forEach(msg => {
+                msg = censorMessage(msg);
+                const messageElement = document.createElement("div");
+                messageElement.classList.add("message");
+                messageElement.innerHTML = `<span>${msg}</span>`;
+                messagesContainer.appendChild(messageElement);
+            });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function censorMessage(message) {
+            censoredWords.forEach(word => {
+                const regex = new RegExp("\\b" + word + "\\b", "gi");
+                message = message.replace(regex, "***");
+            });
+            return message;
+        }
+    </script>
+</body>
+</html>
