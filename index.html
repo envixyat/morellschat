@@ -202,18 +202,32 @@
         <button class="send-btn">Send</button>
     </div>
 
-    <script>
-        const censoredWords = ["selger", "nudes", "fuck", "neger", "slut", "cum", "cummed", "telegram", "snapchat", "discord", "horny"];
-        const channels = { 
-            "9A": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
-            "9B": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
-            "9C": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
-            "9D": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"],
-            "9E": ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"]
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYb9wHFy4usHDcoiCFlTLxklYCqJG4WBs",
+            authDomain: "chirp-ajc26k.firebaseapp.com",
+            databaseURL: "https://chirp-ajc26k-default-rtdb.firebaseio.com",
+            projectId: "chirp-ajc26k",
+            storageBucket: "chirp-ajc26k.appspot.com",
+            messagingSenderId: "703384964068",
+            appId: "1:703384964068:web:3b08e39b6869641de095f1"
         };
-        let currentChannel = "9A";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const censoredWords = ["selger", "nudes", "fuck", "neger", "slut", "cum", "cummed", "telegram", "snapchat", "discord", "horny"];
         let username = "";
         let userClass = "";
+        let currentChannel = "9A";
 
         document.getElementById("enter-chat").addEventListener("click", () => {
             username = document.getElementById("username").value.trim();
@@ -240,40 +254,28 @@
             let message = input.value;
             if (message.trim() !== "") {
                 message = censorMessage(message);
-                channels[currentChannel].push(`${username} (${userClass}): ${message}`);
+                const newMessage = {
+                    username: username,
+                    userClass: userClass,
+                    message: message,
+                    timestamp: Date.now()
+                };
+                database.ref('messages/' + currentChannel).push(newMessage);
                 input.value = "";
-                loadMessages();
-            }
-        });
-
-        document.querySelector(".new-channel").addEventListener("click", () => {
-            const newChannelName = prompt("Skriv inn navnet på den nye kanalen:");
-            if (newChannelName) {
-                const censoredChannelName = censorMessage(newChannelName);
-                channels[censoredChannelName] = ["System: Hei =) har jobbet på denne nettsiden en stund nå =) Vær så snill og vær greie mot hverandre"];
-                const newChannelElement = document.createElement("div");
-                newChannelElement.classList.add("channel");
-                newChannelElement.setAttribute("data-channel", censoredChannelName);
-                newChannelElement.textContent = censoredChannelName;
-                newChannelElement.addEventListener("click", () => {
-                    currentChannel = censoredChannelName;
-                    loadMessages();
-                });
-                document.querySelector(".channel-list").appendChild(newChannelElement);
             }
         });
 
         function loadMessages() {
             const messagesContainer = document.querySelector(".messages");
             messagesContainer.innerHTML = "";
-            channels[currentChannel].forEach(msg => {
-                msg = censorMessage(msg);
+            database.ref('messages/' + currentChannel).on('child_added', function(snapshot) {
+                const msg = snapshot.val();
                 const messageElement = document.createElement("div");
                 messageElement.classList.add("message");
-                messageElement.innerHTML = `<span>${msg}</span>`;
+                messageElement.innerHTML = `<span>${msg.username} (${msg.userClass}): ${msg.message}</span>`;
                 messagesContainer.appendChild(messageElement);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
         function censorMessage(message) {
